@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Cartoonizer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Handlee&display=swap" rel="stylesheet">
+
+    <!-- UI & jQuery -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.3.3/dist/semantic.min.css">
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.3.3/dist/semantic.min.js"></script>
+    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+    <style>
+        html {
+            box-sizing: border-box;
+        }
+        *, *:before, *:after {
+            box-sizing: inherit;
+        }
+
+        body {
+            background: linear-gradient(to right, #ffe4ec, #fff6fb);
+            font-family: 'Handlee', cursive;
+            color: #4a004e;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #d63384;
+            font-family: 'Great Vibes', cursive;
+        }
+
+        h3 {
+            color: #b30059;
+        }
+
+        .ui.button {
+            background-color: #ffb6c1 !important;
+            color: white !important;
+            font-weight: bold;
+            border-radius: 25px !important;
+            box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+            transition: background 0.3s ease;
+        }
+
+        .ui.button:hover {
+            background-color: #ff69b4 !important;
+        }
+
+        .ui.primary.button {
+            background-color: #ff69b4 !important;
+        }
+
+        .ui.divider {
+            border-top: 2px dashed #ffb6c1;
+            margin-top: 2em;
+            margin-bottom: 2em;
+        }
+
+        .ui.card img,
+        video {
+            border: 4px solid #ffb6c1;
+            border-radius: 20px;
+            box-shadow: 0px 10px 20px rgba(255, 182, 193, 0.3);
+            margin: 1em auto;
+        }
+
+        .ui.text.loader {
+            font-family: 'Lucida Handwriting', cursive;
+            color: #d63384;
+            font-size: 1.2em;
+        }
+
+        #loader.active {
+            background: rgba(255, 228, 236, 0.8) !important;
+        }
+
+        .ui.grid .row {
+            padding: 2em 0;
+        }
+
+        .ui.image {
+            border-radius: 20px;
+            box-shadow: 0px 10px 15px rgba(220, 20, 60, 0.1);
+        }
+
+        a button {
+            margin-top: 1em;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loader" class="ui disabled dimmer">
+        <div class="ui text loader">✨ Preparing your cartoon! May take a few secs... ✨</div>
+    </div>
+
+    <div class='ui padded centered grid'>
+        <div class="row">
+            <div class="center aligned column">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div style="height:10%; display:flex; align-items: center; justify-content: center">
+                            {% for category, message in messages %}
+                                {% if category == error %}
+                                    <h3 style="color:red">{{ message }}</h3>
+                                {% else %}
+                                    <h3 style="color:green">{{ message }}</h3>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+
+        <div class="row">
+            <div class='center aligned column'>
+                <h1>🌸 Cartoon Maker: Image or Video 🌸</h1>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class='center aligned column'>
+                <form id='formsubmit' method="post" action="cartoonize" enctype="multipart/form-data">
+                    <div class="ui buttons">
+                        <div id='uploadimage' class="ui button">
+                            <i class="image icon"></i>
+                            Upload Image
+                        </div>
+                        <div class="or"></div>
+                        <div id='uploadvideo' class="ui button">
+                            <i class="video icon"></i>
+                            Upload Video
+                            <span style="font-size: 10px;">(Max 30MB)</span>
+                        </div>
+                    </div>
+                    <input type='file' id='hiddeninputfile' accept="image/*" name='image' style="display: none" />
+                    <input type="file" id="hiddeninputvideo" accept="video/*" name='video' style="display: none">
+                </form>
+            </div>
+        </div>
+
+        {% if cartoonized_image or cartoonized_video %}
+        <div class="row">
+            <div class="column">
+                <div class="ui centered grid">
+                    <div class="row">
+                        <div class="center aligned column">
+                            {% if cartoonized_image %}
+                            <div class="ui centered card">
+                                <div class="image">
+                                    <img src="{{ cartoonized_image }}">
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if cartoonized_video %}
+                            <video width="320" height="240" controls>
+                                <source type="video/mp4" src="{{ cartoonized_video }}">
+                            </video>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        {% if cartoonized_video %}
+                        <a href="{{ cartoonized_video }}" download>
+                            <button class="ui primary button">
+                                <i class="download icon"></i>
+                                Download Video
+                            </button>
+                        </a>
+                        {% endif %}
+
+                        {% if cartoonized_image %}
+                        <a href="{{ cartoonized_image }}" download>
+                            <button class="ui primary button">
+                                <i class="download icon"></i>
+                                Download Image
+                            </button><br>
+                            <small>(Valid for 5 minutes)</small>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="ui divider"></div>
+
+        <!-- Sample Images -->
+        <div class="row">
+            <div class="five wide column">
+                <img class="ui medium centered image" src="/static/sample_images/emma2.jpg">
+            </div>
+            <div class="five wide column">
+                <img class="ui medium centered image" src="/static/sample_images/emma2_cartoonized.jpg">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="five wide column">
+                <img class="ui medium centered image" src="/static/sample_images/spice.jpeg">
+            </div>
+            <div class="five wide column">
+                <img class="ui medium centered image" src="/static/sample_images/spice_cartoonized.jpeg">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="five wide column">
+                <img class="ui medium centered image" src="/static/sample_images/cake.jpeg">
+            </div>
+            <div class="five wide column">
+                <img class="ui medium centered image" src="/static/sample_images/cake_cartoonized.jpeg">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="center aligned column">
+                <h3>🌷 © 2021 Cartoon Maker 🌷</h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $("#uploadimage").on("click", function () {
+            $('#hiddeninputfile').click();
+        });
+
+        $("#uploadvideo").on("click", function () {
+            $('#hiddeninputvideo').click();
+        });
+
+        document.getElementById("hiddeninputfile").onchange = function () {
+            $('#loader').removeClass('disabled').addClass('active');
+            document.getElementById("formsubmit").submit();
+        };
+
+        document.getElementById("hiddeninputvideo").onchange = function () {
+            const fi = document.getElementById('hiddeninputvideo');
+            if (fi.files.length > 0) {
+                for (let i = 0; i <= fi.files.length - 1; i++) {
+                    const fsize = fi.files.item(i).size;
+                    const file = Math.round((fsize / 1024));
+                    const max_file_size = 30720;
+                    if (file >= max_file_size) {
+                        alert("File too big! Choose something under 30MB 💡");
+                    } else {
+                        $('#loader').removeClass('disabled').addClass('active');
+                        document.getElementById("formsubmit").submit();
+                    }
+                }
+            }
+        };
+    </script>
+</body>
+</html>
