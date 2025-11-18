@@ -1,8 +1,3 @@
-"""
-Code copyrights are with: https://github.com/SystemErrorWang/White-box-Cartoonization/
-
-To adapt the code with tensorflow v2 changes obtained from: https://github.com/steubk/White-box-Cartoonization 
-"""
 try:
     import tensorflow.compat.v1 as tf
 except ImportError:
@@ -92,3 +87,4 @@ if __name__ == '__main__':
     out = (np.squeeze(out)+1)*127.5
     out = np.clip(out, 0, 255).astype(np.uint8)
     cv2.imwrite('output_figure1/cartoon2_filter.jpg', out)
+
